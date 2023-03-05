@@ -2,6 +2,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "generic/debian9"
 
   config.vm.network "private_network", ip: "192.168.33.10"
+  config.vm.synced_folder "d:\cources\DevOps\Repo\devops-hometasks\01-vagrant", "/var/www/http"
 
   config.vm.provider "virtualbox" do |vb|
       vb.name = "gitdemo.vagrant.vm"
@@ -16,6 +17,14 @@ Vagrant.configure("2") do |config|
       git config --global user.name "vitaly.by"
       git config --global user.email "vitaly.by@gmail.com"
       git config --list
+      sudo apt-get install -y apache2
+      sudo apt-get install -y php
+      #wget https://github.com/vitalyby/devops-hometasks/archive/refs/heads/main.zip -O /tmp/git.zip
+      #unzip /tmp/git.zip
+      #sudo rm -ivf /var/www/html/index.html
+      #sudo cp ./devops-hometasks-main/01-vagrant/index.html /var/www/html/index.html
+      #sudo mkdir -p /var/www/html/php
+      #sudo cp ./devops-hometasks-main/01-vagrant/index.php /var/www/html/php/index.php
   SHELL
 
   config.vm.provision "file", run: "always", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
