@@ -1,0 +1,23 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/debian9"
+
+  config.vm.network "private_network", ip: "192.168.33.10"
+
+  config.vm.provider "virtualbox" do |vb|
+      vb.name = "gitdemo.vagrant.vm"
+      vb.memory = "512"
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get update
+      sudo apt-get install -y mc
+      sudo apt-get install -y git
+      git --version
+      git config --global user.name "vitaly.by"
+      git config --global user.email "vitaly.by@gmail.com"
+      git config --list
+  SHELL
+
+  config.vm.provision "file", run: "always", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
+  config.vm.provision "file", run: "always", source: "~/.ssh/id_rsa", destination: "~/.ssh/id_rsa"
+end
