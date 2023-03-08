@@ -1,33 +1,43 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "generic/debian9"
+  config.vm.box = "generic/centos8"
 
   config.vm.network "private_network", ip: "192.168.33.10"
-  #config.vm.synced_folder "d:/cources/DevOps/Repo/devops-hometasks/01-vagrant", "/var/www/html"
+    config.vm.synced_folder "d:/cources/DevOps/Repo/devops-hometasks/01-vagrant", "/var/www/html"
 
   config.vm.provider "virtualbox" do |vb|
-      vb.name = "gitdemo.vagrant.vm"
+      vb.name = "gitdemo_branch.vagrant.vm"
       vb.memory = "512"
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-      sudo apt-get update
-      sudo apt-get install -y mc
-      sudo apt-get install -y git
+      #sudo yum update
+      sudo yum install -y mc
+      sudo yum install -y git
+      sudo yum install -y unzip
       git --version
       git config --global user.name "vitaly.by"
       git config --global user.email "vitaly.by@gmail.com"
       git config --list
-      sudo apt-get install -y apache2
-      sudo apt-get install -y php
+      sudo yum install -y httpd
+      sudo firewall-cmd --permanent --add-service=http
+      sudo firewall-cmd --reload
+      sudo yum install -y php
       wget https://github.com/vitalyby/devops-hometasks/archive/refs/heads/main.zip -O /tmp/git.zip
       unzip /tmp/git.zip
-      sudo rm -ivf /var/www/html/index.html
-      sudo cp ./devops-hometasks-main/01-vagrant/index.html /var/www/html/index.html
-      sudo mkdir -p /var/www/html/php
-      sudo cp ./devops-hometasks-main/01-vagrant/index.php /var/www/html/php/index.php
-      sudo cp ./devops-hometasks-main/01-vagrant/ports.conf /etc/apache2/ports.conf
-      sudo cp ./devops-hometasks-main/01-vagrant/000-default.conf /etc/apache2/sites-enabled/000-default.conf
-      sudo systemctl restart apache2
+      #sudo rm -ivf /var/www/html/index.html
+      sudo mkdir /etc/httpd/sites-available
+      sudo mkdir /etc/httpd/sites-enabled
+      sudo cp ./devops-hometasks-main/01-vagrant/ports.conf /etc/httpd/httpd.conf
+      sudo cp ./devops-hometasks-main/01-vagrant/localhost.conf /etc/httpd/sites-available/localhost.conf
+      sudo ln -s /etc/httpd/sites-available/localhost.conf /etc/httpd/sites-enabled/localhost.conf
+      sudo mkdir -p /var/www/localhost/public_html
+      sudo mkdir /var/www/localhost/logs
+      sudo chown -R $USER:$USER /var/www/localhost/public_html
+      sudo chmod -R 755 /var/www
+      sudo cp ./devops-hometasks-main/01-vagrant/index.html /var/www/localhost/public_html/index.html
+      sudo mkdir -p /var/www/localhost/public_html/php
+      sudo cp ./devops-hometasks-main/01-vagrant/index.php /var/www/localhost/public_html/php/index.php
+      sudo systemctl restart httpd
   SHELL
 
   config.vm.provision "file", run: "always", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
