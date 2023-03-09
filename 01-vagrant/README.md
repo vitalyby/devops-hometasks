@@ -1,0 +1,1 @@
+https://app.vagrantup.com/vitalyby/boxes/testbox
