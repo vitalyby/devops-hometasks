@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "generic/centos8"
+  config.vm.box = "vitalyby/testbox"
 
   config.vm.network "private_network", ip: "192.168.33.10"
   #config.vm.synced_folder "d:/cources/DevOps/Repo/devops-hometasks/01-vagrant", "/var/www/html"
@@ -10,29 +10,18 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-      #sudo yum update
-      sudo yum install -y mc
-      sudo yum install -y git
-      sudo yum install -y unzip
-      sudo yum -y install policycoreutils-python-utils
-      sudo semanage port -m -t http_port_t -p tcp 8080
-      sudo semanage port -m -t http_port_t -p tcp 8081
+      sudo yum update
       git --version
       git config --global user.name "vitaly.by"
       git config --global user.email "vitaly.by@gmail.com"
       git config --list
-      sudo yum install -y httpd
-      sudo firewall-cmd --permanent --add-service=http
-      sudo firewall-cmd --permanent --add-port={80,443,8080,8081}/tcp
-      sudo firewall-cmd --reload
-      sudo yum install -y php
-      wget https://github.com/vitalyby/devops-hometasks/archive/refs/heads/main.zip -O /tmp/git.zip
-      unzip /tmp/git.zip
-      sudo cp ./devops-hometasks-main/01-vagrant/httpd.conf /etc/httpd/conf/httpd.conf
-      sudo cp ./devops-hometasks-main/01-vagrant/localhost.conf /etc/httpd/conf.d/localhost.conf
-      sudo cp ./devops-hometasks-main/01-vagrant/index.html /var/www/html/index.html
-      sudo mkdir -p /var/www/html/php
-      sudo cp ./devops-hometasks-main/01-vagrant/index.php /var/www/html/php/index.php
+      # wget https://github.com/vitalyby/devops-hometasks/archive/refs/heads/main.zip -O /tmp/git.zip
+      # unzip /tmp/git.zip
+      # sudo cp ./devops-hometasks-main/01-vagrant/httpd.conf /etc/httpd/conf/httpd.conf
+      # sudo cp ./devops-hometasks-main/01-vagrant/localhost.conf /etc/httpd/conf.d/localhost.conf
+      # sudo cp ./devops-hometasks-main/01-vagrant/index.html /var/www/html/index.html
+      # sudo mkdir -p /var/www/html/php
+      # sudo cp ./devops-hometasks-main/01-vagrant/index.php /var/www/html/php/index.php
       sudo systemctl restart httpd
   SHELL
 
