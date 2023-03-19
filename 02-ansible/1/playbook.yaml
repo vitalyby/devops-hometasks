@@ -9,86 +9,70 @@
     domain: localhost
 
   tasks:
-  - name: Hello world
-    debug:
-      msg: "Hello, world!"
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
 
-  - name: Install Apache
-    apt:
-      name: apache2
-      state: present
+    - name: Print Linux version
+      shell: echo $(cat /etc/os-release) >testfile
+      args:
+        chdir: /home/vagrant
+        creates: testfile
 
-  - name: Install Vim
-    apt:
-      name: vim
-      state: present
-      update_cache: true
+    - name: Copy file /var/www/html/index.html
+      ansible.builtin.copy:
+        src: /vagrant/index.html
+        dest: /var/www/html/index.html
+        force: true
+        owner: root
+        group: root
+        mode: "0644"
 
-  - name: Install mc
-    apt:
-      name: mc
-      state: present
-      update_cache: true
+    - name: Create a directory /var/www/html/php
+      ansible.builtin.file:
+        path: /var/www/html/php
+        state: directory
+        mode: "0755"
 
-  - name: Print Linux version
-    shell: echo $(cat /etc/os-release) >testfile
-    args:
-      chdir: /home/vagrant
-      creates: testfile
+    - name: Copy file /var/www/html/php/index.php
+      ansible.builtin.copy:
+        src: /vagrant/index.php
+        dest: /var/www/html/php/index.php
+        force: true
+        owner: root
+        group: root
+        mode: "0644"
 
-  - name: Copy file /var/www/html/index.html
-    ansible.builtin.copy:
-      src: /vagrant/index.html
-      dest: /var/www/html/index.html
-      force: true
-      owner: root
-      group: root
-      mode: '0644'
+    - name: enabled mod_rewrite
+      apache2_module: name=rewrite state=present
+      notify:
+        - restart apache2
 
-  - name: Create a directory /var/www/html/php
-    ansible.builtin.file:
-      path: /var/www/html/php
-      state: directory
-      mode: '0755'      
+    - name: apache2 listen on port {{ http_port }}
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80$" line="Listen {{ http_port }}" state=present
+      notify:
+        - restart apache2
 
-  - name: Copy file /var/www/html/php/index.php
-    ansible.builtin.copy:
-      src: /vagrant/index.php
-      dest: /var/www/html/php/index.php
-      force: true
-      owner: root
-      group: root
-      mode: '0644'
+    - name: apache2 listen on port {{ http_port2 }}
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 8081" line="Listen {{ http_port2 }}" state=present insertafter="^Listen 8080$"
+      notify:
+        - restart apache2
 
-  - name: enabled mod_rewrite
-    apache2_module: name=rewrite state=present
-    notify:
-      - restart apache2
+    # - name: apache2 virtualhost on port {{ http_port }}
+    #   lineinfile: dest=/etc/apache2/sites-available/000-default.conf regexp="^<VirtualHost \*:" line="<VirtualHost *:{{ http_port }}>"
+    #   notify:
+    #     - restart apache2
 
-  - name: apache2 listen on port {{ http_port }}
-    lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80$" line="Listen {{ http_port }}" state=present
-    notify:
-      - restart apache2
+    - name: create virtual host file
+      template: src=/vagrant/localhost.conf dest=/etc/apache2/sites-available/{{ domain }}.conf
 
-  - name: apache2 listen on port {{ http_port2 }}
-    lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 8081" line="Listen {{ http_port2 }}" state=present insertafter="^Listen 8080$"
-    notify:
-      - restart apache2
-
-  - name: apache2 virtualhost on port {{ http_port }}
-    lineinfile: dest=/etc/apache2/sites-available/000-default.conf regexp="^<VirtualHost \*:" line="<VirtualHost *:{{ http_port }}>"
-    notify:
-      - restart apache2
-
-  - name: create virtual host file
-    template: src=/vagrant/localhost.conf dest=/etc/apache2/sites-available/{{ domain }}.conf
-
-  - name: generate symlinks to {{ domain }}.conf
-    command: a2ensite {{ domain }}
-    args:
-      creates: /etc/apache2/sites-enabled/{{ domain }}.conf
-    notify:
-      - restart apache2
+    - name: generate symlinks to {{ domain }}.conf
+      command: a2ensite {{ domain }}
+      args:
+        creates: /etc/apache2/sites-enabled/{{ domain }}.conf
+      notify:
+        - restart apache2
 
   handlers:
     - name: restart apache2
