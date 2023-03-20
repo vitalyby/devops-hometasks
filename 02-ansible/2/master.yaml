@@ -1,0 +1,39 @@
+---
+- name: Master provision
+  hosts: master
+
+  tasks:
+    - name: Set alias ll
+      replace:
+        path: /home/vagrant/.bashrc
+        regexp: "^#alias ll='ls -l'$"
+        replace: "alias ll='ls -la'"
+
+    - name: Set colors
+      replace:
+        path: /home/vagrant/.bashrc
+        regexp: "^#force_color_prompt=yes$"
+        replace: "force_color_prompt=yes"
+
+    - name: install packages
+      become: yes
+      apt:
+        pkg:
+          - vim
+          - mc
+          - sshpass
+        state: present
+
+- name: Slave provision
+  hosts: slave
+
+  tasks:
+    - name: Hello world
+      debug:
+        msg: "Hello, world!"
+
+    - name: Print Linux version
+      shell: echo $(cat /etc/os-release) >testfile
+      args:
+        chdir: /home/vagrant
+        creates: testfile

@@ -1,0 +1,32 @@
+---
+- name: Slave provision
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Install packages
+    apt:
+      pkg:
+      - mc
+      - sshpass
+      - vim
+      - nginx
+      - nano
+      state: present
+
+  - name: Copy file /etc/nginx/sites-available/default
+    ansible.builtin.copy:
+      src: /vagrant/default
+      dest: /etc/nginx/sites-available/default
+      force: true
+      owner: root
+      group: root
+      mode: "0644"
+    notify:
+      - Restart nginx
+
+  handlers:
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted

@@ -1,0 +1,56 @@
+---
+- name: Slave provision
+  hosts: all
+  become: yes
+
+  vars:
+    http_port: 8081
+    domain: localhost
+
+  tasks:
+    - name: install packages
+      apt:
+        pkg:
+          - apache2
+          - vim
+          - mc
+          - php
+        state: present
+        update_cache: true
+
+    - name: Enable password authentification
+      #become: yes
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication no$"
+        replace: "PasswordAuthentication yes"
+      notify:
+        - restart apache2
+
+    - name: Copy file /var/www/html/index.php
+      ansible.builtin.copy:
+        src: /vagrant/index.php
+        dest: /var/www/html/index.php
+        force: true
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Remove file /var/www/html/index.html
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent        
+
+    - name: enabled mod_rewrite
+      apache2_module: name=rewrite state=present
+      notify:
+        - restart apache2
+
+    - name: apache2 listen on port {{ http_port }}
+      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80$" line="Listen {{ http_port }}" state=present
+      notify:
+        - restart apache2
+
+  handlers:
+    - name: restart apache2
+      service: name=apache2 state=restarted
