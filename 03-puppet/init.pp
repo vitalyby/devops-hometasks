@@ -11,7 +11,7 @@ class slave1 {
 
   file { '/var/www/html/index.html':
           ensure => file,
-          source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/02-ansible/2/index.html',
+          source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/03-puppet/index.html',
   }
 
   service { 'firewalld':
@@ -37,7 +37,7 @@ class slave2 {
 
   file { '/var/www/html/index.php':
           ensure => file,
-          source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/02-ansible/2/index.php',
+          source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/03-puppet/index.php',
   }  
 
   service { 'firewalld':
