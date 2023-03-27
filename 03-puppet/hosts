@@ -1,0 +1,7 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+127.0.0.1 master.puppet
+192.168.50.4 master.puppet
+192.168.50.5 slave1.puppet
+192.168.50.6 slave2.puppet

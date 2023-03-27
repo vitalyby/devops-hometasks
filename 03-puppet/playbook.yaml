@@ -1,0 +1,129 @@
+---
+- name: Install soft slave
+  hosts: slave
+  become: yes
+
+  tasks:
+    - name: Add master in hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: 192.168.50.4 master.puppet
+        create: yes        
+
+    - name: Install packages
+      ansible.builtin.yum:
+        name: 
+        - mc
+        - vim
+        - puppet-agent
+        state: present
+
+    - name: copy config
+      ansible.builtin.copy:
+        src: /vagrant/puppet_agent.conf
+        dest: /etc/puppetlabs/puppet/puppet.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - restart puppet
+
+    - name: Add certname in puppet.conf
+      ansible.builtin.lineinfile:
+        path: /etc/puppetlabs/puppet/puppet.conf
+        line: "certname = {{ inventory_hostname }}"
+        create: yes   
+
+    - name: Start agent
+      ansible.builtin.command: /opt/puppetlabs/bin/puppet agent -t
+      register: result
+      failed_when:
+        - result.rc == 0
+
+  handlers:
+    - name: restart puppet
+      service: name=puppet state=restarted        
+
+
+
+
+
+- name: Install master
+  hosts: master
+  become: yes
+
+  tasks:
+    - name: copy hosts
+      ansible.builtin.copy:
+        src: /vagrant/hosts
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: hosts
+      ansible.builtin.shell: 
+        hostnamectl set-hostname master.puppet --static
+
+    - name: Install packages
+      ansible.builtin.yum:
+        name: 
+        - mc
+        - vim
+        - git
+        - puppetserver
+        state: present
+
+    - name: copy config
+      ansible.builtin.copy:
+        src: /vagrant/puppet.conf
+        dest: /etc/puppetlabs/puppet/puppet.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - restart puppetserver
+
+    - name: copy autosign.conf
+      ansible.builtin.copy:
+        src: /vagrant/autosign.conf
+        dest: /etc/puppetlabs/puppet/autosign.conf
+        owner: root
+        group: root
+        mode: '0644'        
+
+    - name: edit config /etc/sysconfig/puppetserver
+      ansible.builtin.replace:
+        path: /etc/sysconfig/puppetserver
+        regexp: '-Xms2g -Xmx2g'
+        replace: '-Xms256m -Xmx2048m'      
+      notify:
+        - restart puppetserver
+
+    - name: firewall
+      ansible.builtin.shell: firewall-cmd --add-port=8140/tcp --permanent    
+      notify:
+        - restart firewall
+
+    - name: copy init.pp
+      ansible.builtin.copy:
+        src: /vagrant/init.pp
+        dest: /etc/puppetlabs/code/environments/production/manifests/init.pp
+        owner: root
+        group: root
+        mode: '0644'    
+
+    - name: copy site.pp
+      ansible.builtin.copy:
+        src: /vagrant/site.pp
+        dest: /etc/puppetlabs/code/environments/production/manifests/site.pp
+        owner: root
+        group: root
+        mode: '0644'               
+
+  handlers:
+    - name: restart puppetserver
+      service: name=puppetserver state=restarted
+
+    - name: restart firewall
+      service: name=firewalld state=restarted      
