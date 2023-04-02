@@ -38,7 +38,7 @@
       ansible.builtin.command: /opt/puppetlabs/bin/puppet agent -t
       register: result
       failed_when:
-        - result.rc == 0
+        - result.rc > 2
 
   handlers:
     - name: restart puppet
