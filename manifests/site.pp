@@ -8,4 +8,9 @@ node 'slave1.puppet' {
 
 node 'master.puppet' {
    include nginx
+   include nginxserver
+}
+
+node 'mineserver.puppet' {
+   include mineserver
 }

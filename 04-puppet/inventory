@@ -9,6 +9,9 @@ slave1.puppet
 [slave2]
 slave2.puppet
 
+[mineserver]
+mineserver.puppet
+
 [slave]
 slave1.puppet
 slave2.puppet
