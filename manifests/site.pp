@@ -1,4 +1,3 @@
-
 node 'slave2.puppet' {
    include slave2
 }
@@ -8,5 +7,5 @@ node 'slave1.puppet' {
 }
 
 node 'master.puppet' {
-   include master
+   include nginx
 }

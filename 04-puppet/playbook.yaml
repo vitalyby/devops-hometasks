@@ -107,14 +107,9 @@
       notify:
         - restart puppetserver
 
-    # - name: firewall
-    #   ansible.builtin.shell: firewall-cmd --add-port=8140/tcp --permanent    
-    #   notify:
-    #     - restart firewall
+    - name: install ngnix
+      ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/puppet module install puppet-nginx --version 4.3.0
 
   handlers:
     - name: restart puppetserver
       service: name=puppetserver state=restarted
-
-    # - name: restart firewall
-    #   service: name=firewalld state=restarted      

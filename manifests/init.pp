@@ -1,21 +1,3 @@
-class master {
-  package { 'nginx':
-    ensure => installed,
-  }
-
-  service { 'nginx':
-    ensure  => true,
-    enable  => true,
-    require => Package['nginx'],
-  }
-
-  service { 'firewalld':
-    ensure  => 'stopped',
-    enable  => false,
-  }  
-
-}
-
 class slave1 {
   package { 'httpd':
     ensure => installed,
