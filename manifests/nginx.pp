@@ -3,8 +3,9 @@ class ngnix {
     ensure => installed,
   }
 
-  exec { 'copy config':
-    command => 'cp /etc/puppetlabs/code/environments/main/04-puppet/default /etc/nginx/sites-enabled/default'
+  file { '/etc/nginx/sites-enabled/default':
+    ensure => file,
+    source => '/etc/puppetlabs/code/environments/main/04-puppet/default',
   }   
 
   service { 'nginx':
