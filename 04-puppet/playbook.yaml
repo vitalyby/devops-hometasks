@@ -113,6 +113,19 @@
     - name: start ngnix
       ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/puppet apply /etc/puppetlabs/code/environments/main/manifests/site.pp && setsebool -P httpd_can_network_connect 1
 
+    - name: copy autosign.conf
+      ansible.builtin.copy:
+        src: /etc/puppetlabs/code/environments/main/04-puppet/default
+        dest: /etc/nginx/sites-enabled/default
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - restart nginx        
+
   handlers:
     - name: restart puppetserver
       service: name=puppetserver state=restarted
+
+    - name: restart nginx
+      service: name=nginx state=restarted
