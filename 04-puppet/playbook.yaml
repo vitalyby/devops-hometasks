@@ -110,6 +110,9 @@
     - name: install ngnix
       ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/puppet module install puppet-nginx --version 4.3.0
 
+    - name: start ngnix
+      ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/puppet apply /etc/puppetlabs/code/environments/main/manifests/site.pp && setsebool -P httpd_can_network_connect 1
+
   handlers:
     - name: restart puppetserver
       service: name=puppetserver state=restarted
