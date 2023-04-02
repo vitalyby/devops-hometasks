@@ -1,38 +1,3 @@
-class main {
-  package { 'nginx':
-    ensure => installed,
-  }
-  
-  exec { 'install puppet-nginx':
-    command => '/opt/puppetlabs/puppet/bin/puppet module install puppet-nginx --version 4.3.0'
-  } 
-
-  exec { 'apply site.pp':
-    command => '/opt/puppetlabs/puppet/bin/puppet apply /etc/puppetlabs/code/environments/main/manifests/site.pp'
-  } 
-
-  file { '/etc/nginx/sites-enabled/default':
-    ensure => file,
-    source => '/etc/puppetlabs/code/environments/main/04-puppet/default',
-  }  
-
-  service { 'nginx':
-    ensure  => true,
-    enable  => true,
-    require => Package['nginx'],
-  }
-
-  exec { 'network':
-    command => 'setsebool -P httpd_can_network_connect 1'
-  }  
-
-  service { 'firewalld':
-    ensure  => 'stopped',
-    enable  => false,
-  }  
-
-}
-
 class slave2 {
   package { 'httpd':
     ensure => installed,
