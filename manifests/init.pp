@@ -1,4 +1,4 @@
-class nginxserver {
+class main {
   package { 'nginx':
     ensure => installed,
   }
