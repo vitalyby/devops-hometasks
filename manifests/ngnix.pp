@@ -5,7 +5,7 @@ class ngnix {
 
   file { '/etc/nginx/sites-enabled/default':
           ensure => file,
-          source => /etc/puppetlabs/code/environments/main/04-puppet/default,
+          source => '/etc/puppetlabs/code/environments/main/04-puppet/default',
   }    
 
   service { 'nginx':
