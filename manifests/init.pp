@@ -10,8 +10,8 @@ class slave1 {
   }
 
   file { '/var/www/html/index.html':
-          ensure => file,
-          source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/03-puppet/index.html',
+    ensure => file,
+    source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/03-puppet/index.html',
   }
 
   service { 'firewalld':
@@ -36,8 +36,8 @@ class slave2 {
   }
 
   file { '/var/www/html/index.php':
-          ensure => file,
-          source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/03-puppet/index.php',
+    ensure => file,
+    source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/03-puppet/index.php',
   }  
 
   service { 'firewalld':
@@ -50,7 +50,7 @@ class slave2 {
     path => "/usr/bin",
   }
 
-    exec { 'restart httpd':
+  exec { 'restart httpd':
     command => '/bin/systemctl restart sshd.service'
   }
 
