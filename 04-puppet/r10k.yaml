@@ -1,0 +1,6 @@
+:cachedir: '/var/cache/r10k'
+
+:sources:
+  :my-org:
+    remote: 'https://github.com/vitalyby/devops-hometasks.git'
+    basedir: '/etc/puppetlabs/code/environments'

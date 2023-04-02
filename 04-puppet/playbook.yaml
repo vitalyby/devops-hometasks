@@ -1,0 +1,120 @@
+---
+- name: Install soft slave
+  hosts: slave
+  become: yes
+
+  tasks:
+    - name: Add master in hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: 192.168.50.4 master.puppet
+        create: yes        
+
+    - name: Install packages
+      ansible.builtin.yum:
+        name: 
+        - mc
+        - vim
+        - puppet-agent
+        state: present
+
+    - name: copy config
+      ansible.builtin.copy:
+        src: /vagrant/puppet_agent.conf
+        dest: /etc/puppetlabs/puppet/puppet.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - restart puppet
+
+    - name: Add certname in puppet.conf
+      ansible.builtin.lineinfile:
+        path: /etc/puppetlabs/puppet/puppet.conf
+        line: "certname = {{ inventory_hostname }}"
+        create: yes   
+
+    - name: Start agent
+      ansible.builtin.command: /opt/puppetlabs/bin/puppet agent -t
+      register: result
+      failed_when:
+        - result.rc == 0
+
+  handlers:
+    - name: restart puppet
+      service: name=puppet state=restarted        
+
+
+
+
+
+- name: Install master
+  hosts: master
+  become: yes
+
+  tasks:
+    - name: Install packages
+      ansible.builtin.yum:
+        name: 
+        - mc
+        - vim
+        - git
+        - puppetserver
+        state: present
+
+    - name: copy config
+      ansible.builtin.copy:
+        src: /vagrant/puppet.conf
+        dest: /etc/puppetlabs/puppet/puppet.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify:
+        - restart puppetserver
+
+    - name: r10k
+      ansible.builtin.shell: /opt/puppetlabs/puppet/bin/gem install r10k
+
+    - name: dir for r10k
+      file: 
+        path: /etc/puppetlabs/r10k
+        state: directory
+
+    - name: copy r10k.yaml
+      ansible.builtin.copy:
+        src: /vagrant/r10k.yaml
+        dest: /etc/puppetlabs/r10k/r10k.yaml
+        owner: root
+        group: root
+        mode: '0644'        
+
+    - name: git source
+      ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/r10k deploy environment -pv
+
+    - name: copy autosign.conf
+      ansible.builtin.copy:
+        src: /etc/puppetlabs/code/environments/main/03-puppet/autosign.conf
+        dest: /etc/puppetlabs/puppet/autosign.conf
+        owner: root
+        group: root
+        mode: '0644'          
+
+    - name: edit config /etc/sysconfig/puppetserver
+      ansible.builtin.replace:
+        path: /etc/sysconfig/puppetserver
+        regexp: '-Xms2g -Xmx2g'
+        replace: '-Xms256m -Xmx2048m'      
+      notify:
+        - restart puppetserver
+
+    # - name: firewall
+    #   ansible.builtin.shell: firewall-cmd --add-port=8140/tcp --permanent    
+    #   notify:
+    #     - restart firewall
+
+  handlers:
+    - name: restart puppetserver
+      service: name=puppetserver state=restarted
+
+    # - name: restart firewall
+    #   service: name=firewalld state=restarted      
