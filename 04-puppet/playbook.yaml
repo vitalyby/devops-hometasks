@@ -88,12 +88,12 @@
         group: root
         mode: '0644'        
 
-    - name: git source
+    - name: r10k deploy
       ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/r10k deploy environment -pv
 
     - name: copy autosign.conf
       ansible.builtin.copy:
-        src: /etc/puppetlabs/code/environments/main/03-puppet/autosign.conf
+        src: /etc/puppetlabs/code/environments/main/04-puppet/autosign.conf
         dest: /etc/puppetlabs/puppet/autosign.conf
         owner: root
         group: root

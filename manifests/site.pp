@@ -6,3 +6,7 @@ node 'slave2.puppet' {
 node 'slave1.puppet' {
    include slave1
 }
+
+node 'master.puppet' {
+   include master
+}
