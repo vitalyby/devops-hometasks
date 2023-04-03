@@ -77,10 +77,6 @@ class mineserver {
     source => 'https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar',
   }  
 
-  exec { 'compile server minecraft':
-    command => '/usr/bin/java -Xmx1024M -Xms1024M -jar /opt/minecraft/server.jar nogui'
-  }  
-
   file { '/opt/minecraft/eula.txt':
     ensure => present,
   }->
@@ -88,6 +84,11 @@ class mineserver {
     path => '/opt/minecraft/eula.txt',  
     line => 'eula=true',
     match   => "^eula=false$",
+  }  
+
+  exec { 'compile server minecraft':
+    command => '/usr/bin/java -Xmx1024M -Xms1024M -jar /opt/minecraft/server.jar nogui',
+    path    => '/opt/minecraft',
   }  
 
 }
