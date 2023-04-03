@@ -64,7 +64,7 @@ class mineserver {
     enable  => false,
   }  
 
-  package { 'java-1.8.0-openjdk.x86_64':
+  package { 'java-17-openjdk.x86_64':
     ensure => installed,
   } 
 
@@ -78,7 +78,16 @@ class mineserver {
   }  
 
   exec { 'compile server minecraft':
-    command => 'java -Xmx1024M -Xms1024M -jar server.jar nogui'
+    command => '/usr/bin/java -Xmx1024M -Xms1024M -jar /opt/minecraft/server.jar nogui'
+  }  
+
+  file { '/opt/minecraft/eula.txt':
+    ensure => present,
+  }->
+  file_line { 'edit eula.txt':
+    path => '/opt/minecraft/eula.txt',  
+    line => 'eula=true',
+    match   => "^eula=false$",
   }  
 
 }
