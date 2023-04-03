@@ -2,7 +2,8 @@ class slave2 {
   package { 'httpd':
     ensure => installed,
   }
-    package { 'php':
+
+  package { 'php':
     ensure => installed,
   }
 
@@ -61,6 +62,23 @@ class mineserver {
   service { 'firewalld':
     ensure  => 'stopped',
     enable  => false,
+  }  
+
+  package { 'java-1.8.0-openjdk.x86_64':
+    ensure => installed,
+  } 
+
+  file { '/opt/minecraft':
+    ensure => 'directory',
+  }
+
+  file { '/opt/minecraft/server.jar':
+    ensure => file,
+    source => 'https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar',
+  }  
+
+  exec { 'compile server minecraft':
+    command => 'java -Xmx1024M -Xms1024M -jar server.jar nogui'
   }  
 
 }
