@@ -107,6 +107,19 @@
       notify:
         - restart puppetserver
 
+    - name: dir for minecraft module
+      file: 
+        path: /etc/puppetlabs/code/environments/main/modules/mineserver/manifests
+        state: directory        
+
+    - name: copy mineserver.pp
+      ansible.builtin.copy:
+        src: /etc/puppetlabs/code/environments/main/04-puppet/mineserver.pp
+        dest: /etc/puppetlabs/code/environments/main/modules/mineserver/manifests/init.pp
+        owner: root
+        group: root
+        mode: '0644'  
+
     - name: install ngnix
       ansible.builtin.shell:  /opt/puppetlabs/puppet/bin/puppet module install puppet-nginx --version 4.3.0
 
