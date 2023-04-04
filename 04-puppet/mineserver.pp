@@ -33,10 +33,10 @@ class mineserver {
 
   file { '/etc/systemd/system/minecraft.service':
     ensure => file,
-    source => '/etc/puppetlabs/code/environments/main/manifests/minecraft.service',
+    source => 'https://raw.githubusercontent.com/vitalyby/devops-hometasks/main/04-puppet/minecraft.service',
   }  
 
   exec { 'run daemon':
-    command => 'systemctl daemon-reload && systemctl start minecraft.service',
+    command => '/usr/bin/systemctl daemon-reload && /usr/bin/systemctl start minecraft.service',
   }  
 }
