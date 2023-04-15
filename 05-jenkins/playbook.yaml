@@ -3,7 +3,7 @@
 
   vars:
     url_username: admin
-    url: 192.168.50.5:8080
+    url: 192.168.33.60:8080
     admin_user_pass: admin
     url_json : 'json={ 
               "": "0", 
@@ -71,8 +71,8 @@
         groups: ubuntu #,docker
         append: yes        
                 
-    - name: ansible-galaxy install emmetog.jenkins 
-      ansible.builtin.shell:  /usr/bin/ansible-galaxy install emmetog.jenkins
+    # - name: ansible-galaxy install emmetog.jenkins 
+    #   ansible.builtin.shell:  /usr/bin/ansible-galaxy install emmetog.jenkins
 
     # - name: edit config /root/.ansible/roles/emmetog.jenkins/tasks/docker/install.yml
     #   ansible.builtin.replace:
@@ -80,17 +80,17 @@
     #     regexp: '^  when: container_result\|changed$'
     #     replace: '  when: container_result is changed'
 
-    - name: edit config /root/.ansible/roles/emmetog.jenkins/defaults/main.yml
-      ansible.builtin.replace:
-        path: /root/.ansible/roles/emmetog.jenkins/defaults/main.yml
-        regexp: '^jenkins_java_opts: "-Djenkins.install.runSetupWizard=false"$'
-        replace: 'jenkins_java_opts: "-Djenkins.install.runSetupWizard=false -Xms256m -Xmx748m"'        
+    # - name: edit config /root/.ansible/roles/emmetog.jenkins/defaults/main.yml
+    #   ansible.builtin.replace:
+    #     path: /root/.ansible/roles/emmetog.jenkins/defaults/main.yml
+    #     regexp: '^jenkins_java_opts: "-Djenkins.install.runSetupWizard=false"$'
+    #     replace: 'jenkins_java_opts: "-Djenkins.install.runSetupWizard=false -Xms256m -Xmx748m"'        
 
-    - name: Add row in /root/.ansible/roles/emmetog.jenkins/tasks/configure-jenkins.yml
-      ansible.builtin.lineinfile:
-        path: /root/.ansible/roles/emmetog.jenkins/tasks/configure-jenkins.yml
-        regexp: '^--httpsPort=$HTTPS_PORT '
-        line: "    create: yes"
+    # - name: Add row in /root/.ansible/roles/emmetog.jenkins/tasks/configure-jenkins.yml
+    #   ansible.builtin.lineinfile:
+    #     path: /root/.ansible/roles/emmetog.jenkins/tasks/configure-jenkins.yml
+    #     regexp: '^--httpsPort=$HTTPS_PORT '
+    #     line: "    create: yes"
 
     - name: Jenkins key
       get_url:
@@ -117,7 +117,7 @@
       lineinfile:
         dest=/usr/lib/systemd/system/jenkins.service
         regexp='^Environment="JAVA_OPTS=-Djava.awt.headless=true"$'
-        line='Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"'
+        line='Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true"'
 
     - name: daemon-reload to pick up config changes
       ansible.builtin.systemd:
@@ -188,19 +188,49 @@
         url: "http://{{ url }}"
         user: "{{ url_username }}"
 
-    - name: Prepare a jenkins credentials
-      uri:
-        url: 'http://{{ url }}/crumbIssuer/api/json'
-        user: "{{ url_username }}"
-        password: "{{ adminpwd.stdout }}"
-        force_basic_auth: yes
-        return_content: yes
-      register: crumb
+    # - name: Prepare a jenkins credentials
+    #   uri:
+    #     url: 'http://{{ url }}/crumbIssuer/api/json'
+    #     user: "{{ url_username }}"
+    #     password: "{{ adminpwd.stdout }}"
+    #     force_basic_auth: yes
+    #     return_content: yes
+    #     headers:
+    #       Cookie: /tmp/cookies      
+    #   register: crumb
+
+    - name: Get crumb
+      shell: "curl -s --cookie-jar /tmp/cookies http://{{ url }}/crumbIssuer/api/json -u {{ url_username }}:{{ adminpwd.stdout }}"
+      register: result
+
+    - name: debug crumb
+      debug:
+        msg: "{{ result }}"            
+
+    # - name: debug crumb2
+    #   debug:
+    #     msg: "{{ result.stdout }}"           
+
+    # - name: generateNewToken
+    #   shell: "curl -X POST http://{{ url }}/me/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken?newTokenName=\newtoken -u {{ url_username }}:{{ adminpwd.stdout }} --cookie /tmp/cookies \
+    #          -H 'Jenkins-Crumb:{{ crumb.stdout.crumb }}'"
+    #   register: newtoken        
+
+    # - name: debug
+    #   debug:
+    #     msg: "{{ newtoken.tokenValue }}"        
 
     - name: debug
       debug:
-        msg: "Jenkins url http://{{ url }}, user {{ url_username }}, pass {{adminpwd.stdout}}, Jenkins-Crumb:{{ crumb.json.crumb }}"
+        msg: "Jenkins url http://{{ url }}, user {{ url_username }}, pass {{adminpwd.stdout}}"
 
-    - name: Create a jenkins credentials
-      shell: "curl -X POST -H 'Jenkins-Crumb:{{ crumb.json.crumb }}' 'http://{{ url }}/credentials/store/system/domain/_/createCredentials' \ 
-              --user {{ url_username }}:{{ adminpwd.stdout }} --data-urlencode '{{ url_json }}'"    
+    # - name: Create a jenkins credentials
+    #   shell: "curl -X POST -H 'Jenkins-Crumb:{{ crumb.json.crumb }}' 'http://{{ url }}/credentials/store/system/domain/_/createCredentials' \ 
+    #           --user {{ url_username }}:{{ adminpwd.stdout }} --data-urlencode '{{ url_json }}'"    
+
+
+# curl 192.168.33.60:8080/crumbIssuer/api/json -u admin:admin -c cookies.txt
+
+# curl 192.168.33.60:8080/user/admin/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken --data 'newTokenName=newtoken' -u admin:admin -H "Jenkins-Crumb:d1a5b2707bc1747f4311a39e814786cc6d7bbd3ea91cc6f6f47a9dda8b5de086" -b cookies.txt
+
+# curl -X POST 192.168.33.60:8080/job/dockertest/build -u admin:1150d49c2ad0946b1651e4a464f582adb5
