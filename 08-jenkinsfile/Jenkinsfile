@@ -1,0 +1,98 @@
+pipeline {
+    agent any
+    tools { go 'Go 1.16' }
+    environment {
+        NEXUS_URL='192.168.33.90:8081'
+        STAGE_URL='192.168.33.80'
+        PROD_URL='192.168.33.85'
+    }
+    stages{
+        stage('git wcg') {
+            steps {
+                git 'https://github.com/vitalyby/word-cloud-generator.git'
+            }
+            }
+        stage('go version') {
+            steps {
+                sh '''
+                    go version
+                    make lint
+                    make test
+                '''
+            }
+        }
+        stage('build code') {
+            steps {
+                sh '''
+                    sed -i "s/1.DEVELOPMENT/1.$BUILD_NUMBER/g" static/version
+                    GOOS=linux GOARCH=amd64 go build -o ./artifacts/word-cloud-generator -v 
+                    md5sum artifacts/word-cloud-generator
+                    gzip -f artifacts/word-cloud-generator
+                    ls -l artifacts/
+                '''
+            }
+        }
+        stage('Nexus') {
+            steps {
+                nexusArtifactUploader artifacts: [[artifactId: 'word-cloud-generator', 
+                                                   classifier: '', 
+                                                   file: 'artifacts/word-cloud-generator.gz', 
+                                                   type: 'gz']], 
+                                      credentialsId: 'nexus-creds', 
+                                      groupId: 'master', 
+                                      nexusUrl: "$NEXUS_URL", 
+                                      nexusVersion: 'nexus3', 
+                                      protocol: 'http', 
+                                      repository: 'word-cloud-build', 
+                                      version: '1.$BUILD_NUMBER'
+            }
+        }
+        stage('Staging') {
+            steps {
+                sshagent(credentials: ['ssh_vagrant_stage']) {
+                sh '''
+                    ssh vagrant@$STAGE_URL "sudo service wordcloud stop"
+
+                    ssh vagrant@$STAGE_URL "curl -X GET -u $nexus_user:$nexus_password "http://$STAGE_URL:8081/repository/word-cloud-build/master/word-cloud-generator/1.$BUILD_NUMBER/word-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz"
+                    ssh vagrant@$STAGE_URL "ls -l /opt/wordcloud"
+                    ssh vagrant@$STAGE_URL "gunzip -f /opt/wordcloud/word-cloud-generator.gz"
+                    ssh vagrant@$STAGE_URL "chmod +x /opt/wordcloud/word-cloud-generator"
+
+                    ssh vagrant@$STAGE_URL "sudo service wordcloud start"
+                '''
+                }
+            }
+        }
+        stage('tests') {
+            steps {
+                sh '''
+                    res=`curl -s -H "Content-Type: application/json" -d \'{"text":"ths is a really really really important thing this is"}\' http://$STAGE_URL:8888/version | jq \'. | length\'`
+                    if [ "1" != "$res" ]; then
+                        exit 99
+                    fi
+
+                    res=`curl -s -H "Content-Type: application/json" -d \'{"text":"ths is a really really really important thing this is"}\' http://$STAGE_URL:8888/api | jq \'. | length\'`
+                    if [ "7" != "$res" ]; then
+                        exit 99
+                    fi
+                '''
+            }
+        } 
+        stage('Prod') {
+            steps {
+                sshagent(credentials: ['ssh_vagrant_stage']) {
+                sh '''
+                    ssh vagrant@$PROD_URL "sudo service wordcloud stop"
+
+                    ssh vagrant@$PROD_URL "curl -X GET -u $nexus_user:$nexus_password "http://$PROD_URL:8081/repository/word-cloud-build/master/word-cloud-generator/1.$BUILD_NUMBER/word-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz"
+                    ssh vagrant@$PROD_URL "ls -l /opt/wordcloud"
+                    ssh vagrant@$PROD_URL "gunzip -f /opt/wordcloud/word-cloud-generator.gz"
+                    ssh vagrant@$PROD_URL "chmod +x /opt/wordcloud/word-cloud-generator"
+
+                    ssh vagrant@$PROD_URL "sudo service wordcloud start"
+                '''
+                }
+            }
+        }              
+    }
+}
