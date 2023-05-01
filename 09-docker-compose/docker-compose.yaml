@@ -1,0 +1,22 @@
+---
+version: '3.7'
+services:
+  jenkins:
+    image: jenkins:v001
+    privileged: true
+    user: root
+    ports:
+      - 80:8080
+      - 50000:50000
+    container_name: jenkins
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/local/bin/docker
+  nexus:
+    image: nexus:v001
+    depends_on:
+      - jenkins
+    ports:
+      - 81:8081
+    container_name: nexus
