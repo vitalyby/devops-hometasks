@@ -1,0 +1,18 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "wcg" ]
+  pull_request:
+    branches: [ "wcg" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file 07-docker/multi/Dockerfile --tag image_wcg:$(date +%s)
