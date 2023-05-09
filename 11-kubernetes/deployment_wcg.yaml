@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: word-cloud-generator
+  labels:
+    app: word-cloud-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: word-cloud-generator
+  template:
+    metadata:
+      labels:
+        app: word-cloud-generator
+    spec:
+      containers:
+        - name: word-cloud-generator
+          image: ghcr.io/vitalyby/image_wcg:1.0.0
+          ports:
+            - containerPort: 8888
