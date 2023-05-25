@@ -2,17 +2,25 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: wcg-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  # annotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   rules:
+#   - host: sites.test.local
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: wcg-service
+#             port:
+#               number: 8888
 spec:
   rules:
-  - host: sites.test.local
-    http:
-      paths: 
-      - path: /
-        pathType: Prefix 
-        backend:
-          service:
-            name: wcg-service
-            port:
-              number: 8888
+    - host: sites.test.local
+      http:
+        paths:
+          - backend:
+              serviceName: wcg-service
+              servicePort: 8888
