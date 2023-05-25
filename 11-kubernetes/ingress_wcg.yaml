@@ -9,7 +9,7 @@ spec:
     - host: localhost
       http:
         paths: # | ImplementationSpecific
-          - path: /svc1 # | Exact
+          - path: / # | Exact
             pathType: Prefix # <--| Prefix
             backend:
               service:
