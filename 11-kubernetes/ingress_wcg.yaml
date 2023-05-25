@@ -3,13 +3,14 @@ kind: Ingress
 metadata:
   name: wcg-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - host: sites.test.local
       http:
         paths:
-          - path: /
+          - path: /wcg(/|$)(.*)
             pathType: Prefix
             backend:
               service:
