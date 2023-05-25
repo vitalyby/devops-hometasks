@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: wcg-service
 spec:
+  replicas: 3
   selector:
     app: word-cloud-generator
   ports:
